@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>2027上岸</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Microsoft YaHei", sans-serif;
+  background: linear-gradient(135deg, #edf3ff, #f8fbff);
+  color: #222;
+}
+
+.login {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-box, .box, .record {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+  padding: 28px;
+}
+
+.login-box {
+  width: 340px;
+  text-align: center;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 20px;
+  display: none;
+}
+
+h1 { text-align: center; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.box {
+  height: 300px;
+  text-align: center;
+}
+
+.subject {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.subject:hover { transform: translateY(-3px); }
+
+.subject.active {
+  background: #e9f0ff;
+  border: 2px solid #4f7cff;
+}
+
+.math-card { border-top: 8px solid #4f7cff; }
+.english-card { border-top: 8px solid #67c23a; }
+.politics-card { border-top: 8px solid #e6a23c; }
+.communication-card { border-top: 8px solid #f56c6c; }
+
+input, textarea {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-family: inherit;
+}
+
+textarea {
+  width: 100%;
+  height: 70px;
+  resize: vertical;
+}
+
+button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 14px;
+  background: #4f7cff;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover { background: #365fe0; }
+
+.delete-btn {
+  background: #f56c6c;
+}
+
+.delete-btn:hover {
+  background: #dd4b4b;
+}
+
+.result {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2f5cff;
+  margin: 18px 0;
+}
+
+.quote {
+  color: #555;
+  line-height: 1.6;
+}
+
+.record {
+  margin-top: 24px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+.small {
+  font-size: 14px;
+  color: #666;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .box {
+    height: auto;
+    min-height: 260px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="login" id="loginPage">
+  <div class="login-box">
+    <h2>个人学习系统</h2>
+    <p class="small">请输入密码进入</p>
+    <input type="password" id="passwordInput" placeholder="请输入密码">
+    <br>
+    <button onclick="login()">进入</button>
+    <p id="loginTip" class="small"></p>
+  </div>
+</div>
+
+<div class="container" id="mainPage">
+  <h1>27上岸</h1>
+  <p style="text-align:center" id="nowTime"></p>
+
+  <div class="grid">
+
+    <div class="box">
+      <h2>抽取学习时间</h2>
+      <p>
+        <input type="time" id="startTime" value="08:00">
+        -
+        <input type="time" id="endTime" value="22:00">
+      </p>
+      <button onclick="drawStudyTime()">抽取</button>
+      <div class="result" id="result">点击抽取</div>
+      <div class="quote" id="quote">今天也要稳住心态。</div>
+    </div>
+
+    <div class="box subject math-card" id="mathBox" onclick="toggleSubject('math')">
+      <h2>数学</h2>
+      <p>开始：<span id="mathStart">未开始</span></p>
+      <p>结束：<span id="mathEnd">未结束</span></p>
+      <p>总时长：<span id="mathTotal">0 分钟</span></p>
+    </div>
+
+    <div class="box subject english-card" id="englishBox" onclick="toggleSubject('english')">
+      <h2>英语</h2>
+      <p>开始：<span id="englishStart">未开始</span></p>
+      <p>结束：<span id="englishEnd">未结束</span></p>
+      <p>总时长：<span id="englishTotal">0 分钟</span></p>
+    </div>
+
+    <div class="box subject politics-card" id="politicsBox" onclick="toggleSubject('politics')">
+      <h2>政治</h2>
+      <p>开始：<span id="politicsStart">未开始</span></p>
+      <p>结束：<span id="politicsEnd">未结束</span></p>
+      <p>总时长：<span id="politicsTotal">0 分钟</span></p>
+    </div>
+
+    <div class="box subject communication-card" id="communicationBox" onclick="toggleSubject('communication')">
+      <h2>通信原理</h2>
+      <p>开始：<span id="communicationStart">未开始</span></p>
+      <p>结束：<span id="communicationEnd">未结束</span></p>
+      <p>总时长：<span id="communicationTotal">0 分钟</span></p>
+    </div>
+
+    <div class="box">
+      <h2>学习时间饼状图</h2>
+      <canvas id="pieChart" width="250" height="220"></canvas>
+    </div>
+
+  </div>
+
+  <div class="record">
+    <h2>每日学习状况记录</h2>
+
+    <p>今日备注：</p>
+    <textarea id="todayNote" placeholder="例如：今天数学状态不错，英语单词没背完，明天补上。"></textarea>
+
+    <table>
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>数学</th>
+          <th>英语</th>
+          <th>政治</th>
+          <th>通信原理</th>
+          <th>总时长</th>
+          <th>备注</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="recordTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const PASSWORD = "woyaoshangan2027";
+
+const quotes = [
+  "你不是在学习，你是在给未来的自己充值。",
+  "学不进去也要坐着，气势不能输。",
+  "今天多背一个公式，考场少掉一滴眼泪。",
+  "别慌，别人也没你想得那么会。",
+  "只要你还在桌前，你就还没输。",
+  "宇宙的尽头是编制，考研的尽头是上岸。",
+  "今天不想学？正常，但你还是得学。",
+  "别人卷不卷不知道，你先把今天稳住。"
+];
+
+const subjects = {
+  math: { name: "数学", start: null, total: 0, running: false },
+  english: { name: "英语", start: null, total: 0, running: false },
+  politics: { name: "政治", start: null, total: 0, running: false },
+  communication: { name: "通信原理", start: null, total: 0, running: false }
+};
+
+function login() {
+  const pwd = document.getElementById("passwordInput").value;
+
+  if (pwd === PASSWORD) {
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("mainPage").style.display = "block";
+    loadTodayData();
+    loadRecords();
+    drawPieChart();
+  } else {
+    document.getElementById("loginTip").innerText = "密码错误";
+  }
+}
+
+function updateTime() {
+  document.getElementById("nowTime").innerText =
+    "当前时间：" + new Date().toLocaleString("zh-CN");
+}
+
+setInterval(updateTime, 1000);
+updateTime();
+
+function timeToMinutes(time) {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function drawStudyTime() {
+  const start = timeToMinutes(document.getElementById("startTime").value);
+  const end = timeToMinutes(document.getElementById("endTime").value);
+
+  if (end <= start) {
+    document.getElementById("result").innerText = "时间设置有误";
+    return;
+  }
+
+  const total = end - start;
+  const min = Math.ceil(total * 0.7);
+  const random = Math.floor(Math.random() * (total - min + 1)) + min;
+
+  document.getElementById("result").innerText = formatDuration(random);
+  document.getElementById("quote").innerText =
+    quotes[Math.floor(Math.random() * quotes.length)];
+}
+
+function formatTime(date) {
+  return date.toLocaleTimeString("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
+function formatDuration(minutes) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+
+  if (h === 0) return `${m} 分钟`;
+  if (m === 0) return `${h} 小时`;
+  return `${h} 小时 ${m} 分钟`;
+}
+
+function stopSubject(key) {
+  const s = subjects[key];
+
+  if (!s.running) return;
+
+  const now = new Date();
+  const minutes = Math.ceil((now - s.start) / 60000);
+
+  s.total += minutes;
+  s.running = false;
+
+  document.getElementById(key + "End").innerText = formatTime(now);
+  document.getElementById(key + "Total").innerText = formatDuration(s.total);
+  document.getElementById(key + "Box").classList.remove("active");
+}
+
+function toggleSubject(key) {
+  const s = subjects[key];
+
+  if (!s.running) {
+    Object.keys(subjects).forEach(k => {
+      if (k !== key) stopSubject(k);
+    });
+
+    const now = new Date();
+    s.running = true;
+    s.start = now;
+
+    document.getElementById(key + "Start").innerText = formatTime(now);
+    document.getElementById(key + "End").innerText = "学习中";
+    document.getElementById(key + "Box").classList.add("active");
+  } else {
+    stopSubject(key);
+  }
+
+  drawPieChart();
+  autoSaveTodayRecord();
+}
+
+function drawPieChart() {
+  const canvas = document.getElementById("pieChart");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const keys = Object.keys(subjects);
+  const data = keys.map(k => subjects[k].total);
+  const labels = keys.map(k => subjects[k].name);
+  const total = data.reduce((a, b) => a + b, 0);
+
+  const colors = ["#4f7cff", "#67c23a", "#e6a23c", "#f56c6c"];
+
+  const centerX = 125;
+  const centerY = 110;
+  const radius = 80;
+
+  if (total === 0) {
+    ctx.fillStyle = "#777";
+    ctx.font = "16px Microsoft YaHei";
+    ctx.textAlign = "center";
+    ctx.fillText("暂无数据", centerX, centerY);
+    return;
+  }
+
+  let startAngle = -Math.PI / 2;
+
+  data.forEach((value, i) => {
+    if (value === 0) return;
+
+    const angle = value / total * Math.PI * 2;
+    const endAngle = startAngle + angle;
+
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+
+    const middleAngle = startAngle + angle / 2;
+    const textX = centerX + Math.cos(middleAngle) * radius * 0.55;
+    const textY = centerY + Math.sin(middleAngle) * radius * 0.55;
+    const percent = Math.round(value / total * 100);
+
+    if (percent >= 8) {
+      ctx.fillStyle = "white";
+      ctx.font = "bold 13px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(labels[i], textX, textY - 8);
+      ctx.fillText(percent + "%", textX, textY + 8);
+    }
+
+    startAngle = endAngle;
+  });
+}
+
+function todayString() {
+  return new Date().toLocaleDateString("zh-CN");
+}
+
+function autoSaveTodayRecord() {
+  const records = JSON.parse(localStorage.getItem("studyRecords") || "[]");
+  const note = document.getElementById("todayNote").value;
+
+  const record = {
+    date: todayString(),
+    math: subjects.math.total,
+    english: subjects.english.total,
+    politics: subjects.politics.total,
+    communication: subjects.communication.total,
+    note: note
+  };
+
+  const index = records.findIndex(r => r.date === record.date);
+
+  if (index >= 0) {
+    records[index] = record;
+  } else {
+    records.push(record);
+  }
+
+  localStorage.setItem("studyRecords", JSON.stringify(records));
+  loadRecords();
+}
+
+function loadRecords() {
+  const records = JSON.parse(localStorage.getItem("studyRecords") || "[]");
+  const tbody = document.getElementById("recordTable");
+
+  tbody.innerHTML = "";
+
+  records.forEach((r, index) => {
+    const total =
+      (r.math || 0) +
+      (r.english || 0) +
+      (r.politics || 0) +
+      (r.communication || 0);
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${r.date}</td>
+        <td>${formatDuration(r.math || 0)}</td>
+        <td>${formatDuration(r.english || 0)}</td>
+        <td>${formatDuration(r.politics || 0)}</td>
+        <td>${formatDuration(r.communication || 0)}</td>
+        <td>${formatDuration(total)}</td>
+        <td>${r.note || ""}</td>
+        <td>
+          <button class="delete-btn" onclick="deleteRecord(${index})">删除</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function deleteRecord(index) {
+  const ok = confirm("确定要删除这一天的学习记录吗？删除后无法恢复。");
+
+  if (!ok) return;
+
+  const records = JSON.parse(localStorage.getItem("studyRecords") || "[]");
+  records.splice(index, 1);
+  localStorage.setItem("studyRecords", JSON.stringify(records));
+  loadRecords();
+}
+
+function loadTodayData() {
+  const records = JSON.parse(localStorage.getItem("studyRecords") || "[]");
+  const today = todayString();
+  const todayRecord = records.find(r => r.date === today);
+
+  if (!todayRecord) return;
+
+  subjects.math.total = todayRecord.math || 0;
+  subjects.english.total = todayRecord.english || 0;
+  subjects.politics.total = todayRecord.politics || 0;
+  subjects.communication.total = todayRecord.communication || 0;
+
+  document.getElementById("mathTotal").innerText =
+    formatDuration(subjects.math.total);
+
+  document.getElementById("englishTotal").innerText =
+    formatDuration(subjects.english.total);
+
+  document.getElementById("politicsTotal").innerText =
+    formatDuration(subjects.politics.total);
+
+  document.getElementById("communicationTotal").innerText =
+    formatDuration(subjects.communication.total);
+
+  document.getElementById("todayNote").value = todayRecord.note || "";
+}
+
+document.getElementById("todayNote").addEventListener("input", autoSaveTodayRecord);
+
+setInterval(() => {
+  autoSaveTodayRecord();
+}, 30000);
+</script>
+
+</body>
+</html>
